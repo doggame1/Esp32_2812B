@@ -69,15 +69,14 @@ void C2812bDevCtrl::EnableBreath(bool enable)
 
 bool C2812bDevCtrl::SetLuminance(u_int8_t lumi)
 {
-    if(b_breathEnable == false)
+    if(b_breathEnable)
     {
-        if(lumi >= 100){lumi = 100;}
-        if(lumi <= 0){lumi = 0;}
-        n_brightness = lumi;
-        SaveStatus();
-        return true;
+        return false;
     }
-    return false;
+    n_brightness = lumi;
+    SaveStatus();
+    return true;
+
     
 }
 

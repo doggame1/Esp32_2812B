@@ -78,6 +78,8 @@ void CCommandParser::CmdSetLumi(const char* command)
     uint8_t lumi;
     if(sscanf(command,"setlumi %d" ,&lumi) == 1)
     {
+        if(lumi >= 100){lumi = 100;}
+        
         if(false == m_ledCtrl.SetLuminance(lumi))
         {
             m_serialCtrl.SendData("要先关闭呼吸功能");
