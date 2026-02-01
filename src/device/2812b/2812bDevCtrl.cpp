@@ -71,7 +71,7 @@ bool C2812bDevCtrl::SetLuminance(u_int8_t lumi)
 {
     if(b_breathEnable == false)
     {
-        if(lumi >= 120){lumi = 110;}
+        if(lumi >= 100){lumi = 100;}
         if(lumi <= 0){lumi = 0;}
         n_brightness = lumi;
         SaveStatus();
