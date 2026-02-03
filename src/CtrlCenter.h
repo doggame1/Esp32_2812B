@@ -2,7 +2,7 @@
 #include "device/2812b/2812bDevCtrl.h"
 #include "device/Serial/Serial.h"
 #include "device/Serial/CommandParser.h"
-
+#include "device/buleTooth/BlueToothSerialDevCtrl.h"
 class CtrlCenter
 {
 public:
@@ -21,4 +21,6 @@ private:
     C2812bDevCtrl m_2812b;
     CCommandParser m_commandParser;
     CSerialDevCtrl m_Serial;
+    CBlueToothSerialCtrl m_buleTooth;
+
 };

@@ -1,5 +1,6 @@
 #include "Serial.h"
 
+
 CSerialDevCtrl::CSerialDevCtrl(CCommandParser& parser) : recvIndex(0),m_commandParser(parser)
 {
 }
@@ -10,6 +11,7 @@ CSerialDevCtrl::~CSerialDevCtrl()
 
 void CSerialDevCtrl::Init()
 {
+    delay(300);
     Serial.begin(BAUD_RATE);
     Serial.println("串口已初始化");
 }
@@ -29,7 +31,7 @@ void CSerialDevCtrl::UpDate()
     }
     if(incomingByte == '\n')
     {
-        recvBuffer[recvIndex] = '\0'; //添加字符串结束符
+        recvBuffer[recvIndex -1] = '\0'; //添加字符串结束符
         Serial.println("接收到数据");
         Serial.println(recvBuffer);
         recvIndex = 0;   //清空接收区缓存
