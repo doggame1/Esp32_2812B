@@ -45,9 +45,19 @@ void CCommandParser::ProcessCommand(const char *command)
         m_serialCtrl.SendData("设置亮度");
         m_blueTooth.SendData("设置亮度");
         CmdSetLumi(command);
+    }else if(strncmp(command,"setlednum",9) == 0)
+    {
+        m_serialCtrl.SendData("设置灯珠数量");
+        m_blueTooth.SendData("设置灯珠数量");
+        CmdSetLedNum(command);
+    }else if(strncmp(command,"testone",7) == 0)
+    {
+        m_serialCtrl.SendData("测试用1");
+        m_blueTooth.SendData("测试用1");
+        CmdTestOne(command);
     }else
     {
-        m_blueTooth.SendData("设置亮度");
+        m_blueTooth.SendData("无效命令");
         m_serialCtrl.SendData("无效命令");
     }
 }
@@ -110,6 +120,33 @@ void CCommandParser::CmdSetLumi(const char* command)
 
         m_blueTooth.SendData("设置亮度为:");
         m_blueTooth.SendData((String)lumi);
+    }
+
+}
+
+void CCommandParser::CmdSetLedNum(const char *command)
+{
+    uint16_t num;
+    if(sscanf(command,"setlednum %d" ,&num) == 1)
+    {
+        m_ledCtrl.SetLedNum(num);
+
+        m_blueTooth.SendData("设置灯珠数量为:");
+        m_blueTooth.SendData((String)num);
+
+        m_serialCtrl.SendData("设置灯珠数量为:");
+        m_serialCtrl.SendData((String)num);
+    }
+}
+
+void CCommandParser::CmdTestOne(const char *command)
+{
+    uint16_t num;
+    if(sscanf(command,"testone %d" ,&num) == 1)
+    {
+        m_ledCtrl.testOne(num);
+        m_blueTooth.SendData("测试用");
+        m_serialCtrl.SendData("测试用");
     }
 
 }

@@ -2,15 +2,18 @@
 
 C2812bDevCtrl::C2812bDevCtrl()
 {
+    LoadStatus();
+    c_leds = new CRGB[LED_NUM];
 }
 
 void C2812bDevCtrl::Init()
 {
+    LoadStatus();
     b_breathEnable = false;
     FastLED.addLeds<WS2812B,LED_PIN,GRB>(c_leds,LED_NUM);
     
     //从flash加载掉电后的数据
-    LoadStatus();
+    //LoadStatus();
     FastLED.setBrightness(n_brightness);
     fill_solid(c_leds,LED_NUM,c_baseColor);
     FastLED.show();
@@ -26,6 +29,12 @@ void C2812bDevCtrl::UpDate()
         FastLED.show();
         return;
     }
+    Breath();
+
+}
+
+void C2812bDevCtrl::Breath()
+{
     // 读取系统从启动到现在经过的毫秒数
     // millis() 是 Arduino 提供的“系统时间”
     unsigned long now = millis();
@@ -50,7 +59,6 @@ void C2812bDevCtrl::UpDate()
     FastLED.setBrightness(n_brightness);
     fill_solid(c_leds,LED_NUM,c_baseColor);
     FastLED.show();
-
 }
 
 void C2812bDevCtrl::SetColor(const CRGB &color)
@@ -80,6 +88,33 @@ bool C2812bDevCtrl::SetLuminance(u_int8_t lumi)
     
 }
 
+void C2812bDevCtrl::SetLedNum(u_int16_t num)
+{
+    
+    FastLED.setBrightness(0);
+    fill_solid(c_leds,LED_NUM,c_baseColor);
+    FastLED.show();
+
+    
+    LED_NUM = num;  //设置led数量
+    if(c_leds)
+    {
+        delete[] c_leds; //释放之前的内存
+    }
+
+    c_leds = new CRGB[LED_NUM];
+    FastLED.addLeds<WS2812B,LED_PIN,GRB>(c_leds,LED_NUM);
+    fill_solid(c_leds, LED_NUM, c_baseColor);
+    FastLED.setBrightness(n_brightness);
+    FastLED.show();
+    SaveStatus();
+}
+
+void C2812bDevCtrl::testOne(uint8_t num)
+{
+    FastLED.setBrightness(num);
+}
+
 void C2812bDevCtrl::SaveStatus()
 {
     m_prefs.begin("led_status",false); //打开命名空间 led_status
@@ -92,6 +127,8 @@ void C2812bDevCtrl::SaveStatus()
     m_prefs.putUChar("brightness",n_brightness);
     //保存呼吸模式
     m_prefs.putBool("breathEnable",b_breathEnable);
+    //保存灯珠数量
+    m_prefs.putUInt("ledNum",LED_NUM);
     m_prefs.end();//关闭命名空间
 }
 
@@ -107,5 +144,7 @@ void C2812bDevCtrl::LoadStatus()
     n_brightness = m_prefs.getUChar("brightness",100);
     //获取是否为呼吸模式
     b_breathEnable = m_prefs.getBool("breathEnable",false);
+    //获取灯珠数量
+    LED_NUM = m_prefs.getUInt("ledNum",18);
     m_prefs.end(); //关闭命名空间
 }

@@ -11,16 +11,20 @@ public:
     void Init();
     //周期更新loop用
     void UpDate();
+    //呼吸
+    void Breath();
     //对外接口
     void SetColor(const CRGB& color); //设置颜色
     void EnableBreath(bool enable); //启动或停止呼吸
     bool SetLuminance(u_int8_t lumi); //设置亮度
+    void SetLedNum(u_int16_t num); //设置灯珠数量
+    void testOne(uint8_t num); //设置亮度
 private:
     //硬件参数
     static constexpr uint8_t LED_PIN = 18;
-    static constexpr uint16_t LED_NUM = 18;
+    int32_t LED_NUM = 18;
 
-    CRGB c_leds[LED_NUM];
+    CRGB* c_leds;
     //状态数据
     bool b_breathEnable = false;
     uint8_t n_brightness = 0;

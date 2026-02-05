@@ -9,6 +9,7 @@ CtrlCenter &CtrlCenter::Instance()
 void CtrlCenter::Init()
 {
     m_2812b.Init();
+    m_Serial.SendData("2812初始化完毕");
     //m_Serial.Init();
     m_Serial.SendData("开始初始化蓝牙...");
     m_buleTooth.Init();

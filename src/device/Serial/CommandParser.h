@@ -20,4 +20,6 @@ private:
     void CmdUpdate();
     void CmdSetColor(const char* command);
     void CmdSetLumi(const char* command);
+    void CmdSetLedNum(const char* command);
+    void CmdTestOne(const char* command);
 };
