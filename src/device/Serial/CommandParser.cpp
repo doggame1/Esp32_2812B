@@ -13,23 +13,24 @@ void CCommandParser::ProcessCommand(const char *command)
     {
         m_serialCtrl.SendData("开灯");
         m_blueTooth.SendData("开灯");
+        m_ledCtrl.SetMode(MODE_STATIC);
     }else if (strcmp(command,"offled") == 0)
     {
         m_serialCtrl.SendData("关灯");
         m_blueTooth.SendData("关灯");
-        m_ledCtrl.SetColor(CRGB::Black);  // 关闭灯光
+        m_ledCtrl.SetMode(MODE_OFF);
     }else if(strcmp(command,"onbreath") == 0)
     {
         m_serialCtrl.SendData("开启呼吸");
         m_blueTooth.SendData("开启呼吸");
-        m_ledCtrl.EnableBreath(true);
-    }else if(strcmp(command,"offbreath") == 0)
+        m_ledCtrl.SetMode(MODE_BREATH);
+    }else if(strcmp(command,"onrainbow") == 0)
     {
-        m_serialCtrl.SendData("关闭呼吸");
-        m_blueTooth.SendData("关闭呼吸");
-        m_ledCtrl.EnableBreath(false);
+        m_serialCtrl.SendData("开启幻彩灯");
+        m_blueTooth.SendData("开启幻彩灯");
+        m_ledCtrl.SetMode(MODE_RAINBOW_FLOW);
     }
-    else if(strcmp(command,"update") == 0)
+    else if(strcmp(command,"update") == 0)  //这个已经不用没有实际效果 但是留着备用
     {
         m_serialCtrl.SendData("update");
         m_blueTooth.SendData("update");

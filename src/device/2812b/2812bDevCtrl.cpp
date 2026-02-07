@@ -2,18 +2,18 @@
 
 C2812bDevCtrl::C2812bDevCtrl()
 {
-    LoadStatus();
-    c_leds = new CRGB[LED_NUM];
+    //LoadStatus();
+    c_leds = nullptr;
 }
 
 void C2812bDevCtrl::Init()
 {
     LoadStatus();
-    b_breathEnable = false;
+
+    c_leds = new CRGB[LED_NUM];
+
     FastLED.addLeds<WS2812B,LED_PIN,GRB>(c_leds,LED_NUM);
     
-    //从flash加载掉电后的数据
-    //LoadStatus();
     FastLED.setBrightness(n_brightness);
     fill_solid(c_leds,LED_NUM,c_baseColor);
     FastLED.show();
@@ -22,18 +22,88 @@ void C2812bDevCtrl::Init()
 
 void C2812bDevCtrl::UpDate()
 {
-    if(!b_breathEnable)
+    switch (m_mode)
     {
-        FastLED.setBrightness(n_brightness);
-        fill_solid(c_leds,LED_NUM,c_baseColor);
-        FastLED.show();
-        return;
+        case MODE_STATIC:
+            StaticLight();
+            break;
+
+        case MODE_BREATH:
+            BreathLight();
+            break;
+
+        case MODE_RAINBOW_FLOW:
+            RainbowLight();
+            break;
+
+        case MODE_OFF:
+            FastLED.clear();
+            FastLED.show();
+            break;
     }
-    Breath();
 
 }
 
-void C2812bDevCtrl::Breath()
+void C2812bDevCtrl::SetColor(const CRGB &color)
+{
+    c_baseColor = color;
+    fill_solid(c_leds,LED_NUM,c_baseColor);
+    FastLED.show();
+    SaveStatus();
+}
+
+bool C2812bDevCtrl::SetLuminance(u_int8_t lumi)
+{
+    if(m_mode == MODE_STATIC)
+    {
+        n_brightness = lumi;
+        SaveStatus();
+        return true;
+    }
+    return false;
+}
+
+void C2812bDevCtrl::SetLedNum(u_int16_t num)
+{
+    
+    FastLED.setBrightness(0);
+    fill_solid(c_leds,LED_NUM,c_baseColor);
+    FastLED.show();
+
+    
+    LED_NUM = num;  //设置led数量
+    if(c_leds)
+    {
+        delete[] c_leds; //释放之前的内存
+    }
+
+    c_leds = new CRGB[LED_NUM];
+    FastLED.addLeds<WS2812B,LED_PIN,GRB>(c_leds,LED_NUM);
+    fill_solid(c_leds, LED_NUM, c_baseColor);
+    FastLED.setBrightness(n_brightness);
+    FastLED.show();
+    SaveStatus();
+}
+
+void C2812bDevCtrl::SetMode(LedMode mode)
+{
+    m_mode = mode;
+    SaveStatus();
+}
+
+void C2812bDevCtrl::testOne(uint8_t num)
+{
+    FastLED.setBrightness(num);
+}
+
+void C2812bDevCtrl::StaticLight()
+{
+    FastLED.setBrightness(n_brightness);
+    fill_solid(c_leds, LED_NUM, c_baseColor);
+    FastLED.show();
+}
+
+void C2812bDevCtrl::BreathLight()
 {
     // 读取系统从启动到现在经过的毫秒数
     // millis() 是 Arduino 提供的“系统时间”
@@ -61,58 +131,20 @@ void C2812bDevCtrl::Breath()
     FastLED.show();
 }
 
-void C2812bDevCtrl::SetColor(const CRGB &color)
+void C2812bDevCtrl::RainbowLight()
 {
-    c_baseColor = color;
-    fill_solid(c_leds,LED_NUM,c_baseColor);
-    FastLED.show();
-    SaveStatus();
-}
-
-void C2812bDevCtrl::EnableBreath(bool enable)
-{
-    b_breathEnable = enable;
-    SaveStatus();
-}
-
-bool C2812bDevCtrl::SetLuminance(u_int8_t lumi)
-{
-    if(b_breathEnable)
-    {
-        return false;
+    //读取系统时间
+    unsigned long now = millis();
+    //控制刷新频率防止跑太快
+    if(now - m_rainbowLastTick < m_rainbowInterval)
+    { 
+        return;
     }
-    n_brightness = lumi;
-    SaveStatus();
-    return true;
-
+    m_rainbowLastTick = now;
     
-}
-
-void C2812bDevCtrl::SetLedNum(u_int16_t num)
-{
-    
-    FastLED.setBrightness(0);
-    fill_solid(c_leds,LED_NUM,c_baseColor);
+    fill_rainbow(c_leds,LED_NUM,n_rainbowHue,255/LED_NUM);
     FastLED.show();
-
-    
-    LED_NUM = num;  //设置led数量
-    if(c_leds)
-    {
-        delete[] c_leds; //释放之前的内存
-    }
-
-    c_leds = new CRGB[LED_NUM];
-    FastLED.addLeds<WS2812B,LED_PIN,GRB>(c_leds,LED_NUM);
-    fill_solid(c_leds, LED_NUM, c_baseColor);
-    FastLED.setBrightness(n_brightness);
-    FastLED.show();
-    SaveStatus();
-}
-
-void C2812bDevCtrl::testOne(uint8_t num)
-{
-    FastLED.setBrightness(num);
+    n_rainbowHue++;
 }
 
 void C2812bDevCtrl::SaveStatus()
@@ -125,8 +157,8 @@ void C2812bDevCtrl::SaveStatus()
     m_prefs.putUChar("bule",c_baseColor.b);
     //保存亮度
     m_prefs.putUChar("brightness",n_brightness);
-    //保存呼吸模式
-    m_prefs.putBool("breathEnable",b_breathEnable);
+    //保存模式
+    m_prefs.putUChar("mode",(uint8_t)m_mode);
     //保存灯珠数量
     m_prefs.putUInt("ledNum",LED_NUM);
     m_prefs.end();//关闭命名空间
@@ -142,8 +174,9 @@ void C2812bDevCtrl::LoadStatus()
     c_baseColor = CRGB(r,g,b);
     //获取亮度
     n_brightness = m_prefs.getUChar("brightness",100);
-    //获取是否为呼吸模式
-    b_breathEnable = m_prefs.getBool("breathEnable",false);
+    //获取模式 枚举类型
+    uint8_t mode = m_prefs.getUChar("mode",MODE_STATIC);
+    m_mode = (LedMode)mode;
     //获取灯珠数量
     LED_NUM = m_prefs.getUInt("ledNum",18);
     m_prefs.end(); //关闭命名空间
